@@ -4,4 +4,4 @@ Generates a list of jobs for the game [murder](http://www.games-wiki.org/wiki/As
 
 ## Usage
 
-Generate Jobs: Put participants in `participants.txt`, then `python gen_jobs.py`
+Generate Jobs: Put participants in `participants.txt`, then `python gen_jobs.py`.
