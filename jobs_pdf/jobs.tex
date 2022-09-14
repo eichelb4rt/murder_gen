@@ -1,15 +1,20 @@
 \documentclass[12pt]{scrartcl}
-\usepackage[top=.5cm, bottom=1cm, left=1cm, right=2cm]{geometry}
+\usepackage[top=1cm, bottom=1cm, left=1.1cm, right=2cm]{geometry}
 \usepackage[german]{babel}
 
 % page style
 \pagestyle{empty}
+\setlength{\topskip}{0mm}
 \setlength{\parindent}{0pt}
 
 % murder job
-\def\jobsize{5cm}
-\def\jobhspace{1cm}
-\def\jobvspace{.33cm}
+\newlength{\jobsize}
+\setlength{\jobsize}{5cm}
+\newlength{\jobhspace}
+\setlength{\jobhspace}{1cm}
+\newlength{\jobvspace}
+\setlength{\jobvspace}{.33cm}
+
 \newcommand{\job}[2] {\fbox{
     \parbox[t][\jobsize][c]{\jobsize}{\centering
         \large \textbf{Killer}\\
@@ -18,7 +23,16 @@
         \normalsize #2}
 }\vspace{\jobvspace}\hspace{\jobhspace}}
 
+\newcommand{\jobback}[1] {\fbox{
+    \parbox[t][\jobsize][t]{\jobsize}{\centering
+        \large \textbf{Job}\\
+        \normalsize #1\vfill
+        \rule[0.3\jobsize]{\jobsize}{.5pt}}
+}\vspace{\jobvspace}\hspace{\jobhspace}}
+
 % document
 \begin{document}
-\include{job_list}
+\include{jobs_front}
+\clearpage
+\include{jobs_back}
 \end{document}
