@@ -2,71 +2,91 @@ import math
 import os
 import random
 import subprocess
+from dataclasses import dataclass
 
 PARTICIPANTS = "participants.txt"
 PDF_DIR = "jobs_pdf"
-JOBS_FRONT = "jobs_front.tex"
-JOBS_BACK = "jobs_back.tex"
-JOBS_SRC = "jobs.tex"
+PDF_NAME = "jobs"
+SRC_JOB_LIST = "job_list.tex"
+SRC_MAIN = "main.tex"
 JOBS_PER_LINE = 3
+LINES_PER_PAGE = 4
+JOBS_PER_PAGE = JOBS_PER_LINE * LINES_PER_PAGE
 
 
-def format_job(murderer, target):
-    return f"\\job{{{murderer}}}{{{target}}}"
+@dataclass
+class Job:
+    murderer: str
+    victim: str
 
 
-def format_back(murderer):
-    return f"\\jobback{{{murderer}}}"
+EMPTY_JOB = Job("\\hfill", "\\hfill")
 
 
-def build_cover_line(jobs):
-    # pad murderers
-    murderers = [jobs[i][0] if i < len(jobs) else "" for i in range(JOBS_PER_LINE)]
-    # cover has to be reversed for the double page printing stuff
-    murderers.reverse()
-    line = ""
-    for murderer in murderers:
-        line += f"{format_back(murderer)}\n"
-    return line
-
-
-def main():
+def extract_random_jobs(participants_file: str) -> list[Job]:
     # read all participants
-    with open(PARTICIPANTS, "r") as f:
+    with open(participants_file, "r") as f:
         lines = f.readlines()
     # remove all line breaks
     lines = [line.replace("\n", "") for line in lines]
-    # shuffle all the children
+    # shuffle all the participants
     random.shuffle(lines)
-
     # now every participant in a line kills the participant from the next line
-    jobs = []
-    for i in range(len(lines)):
-        murderer = lines[i]
-        target = lines[(i + 1) % len(lines)]
-        jobs.append((murderer, target))
-        
-    # build string for job front
-    jobs_str = ""
-    for murderer, target in jobs:
-        jobs_str += f"{format_job(murderer, target)}\n"
-    
-    # build string for job back
-    cover_str = ""
-    n_lines = math.ceil(len(jobs) / JOBS_PER_LINE)
-    for i in range(n_lines):
-        start = i * JOBS_PER_LINE
-        end = min((i + 1) * JOBS_PER_LINE, len(jobs))
-        line_jobs = jobs[start:end]
-        cover_str += build_cover_line(line_jobs)
+    return [Job(lines[i], lines[(i + 1) % len(lines)]) for i in range(len(lines))]
 
+
+def format_front(job: Job) -> str:
+    return f"\\job{{{job.murderer}}}{{{job.victim}}}"
+
+
+def format_back(job: Job) -> str:
+    return f"\\jobback{{{job.murderer}}}"
+
+
+def build_page_front(jobs_in_page: list[Job]) -> str:
+    assert len(jobs_in_page) == JOBS_PER_LINE * LINES_PER_PAGE, "Page has to be full (maybe even with empty jobs) to be valid."
+    return "\n".join([format_front(job) for job in jobs_in_page]) + "\n\\clearpage"
+
+
+def build_back_line(jobs_in_line: list[Job]) -> str:
+    # back has to be reversed for the double page printing stuff
+    return "\n".join([format_back(job) for job in reversed(jobs_in_line)])
+
+
+def build_page_back(jobs_in_page: list[Job]) -> str:
+    assert len(jobs_in_page) == JOBS_PER_PAGE, "Page has to be full (maybe even with empty jobs) to be valid."
+    return "\n".join([build_back_line(jobs_in_page[JOBS_PER_LINE * i: JOBS_PER_LINE * (i + 1)]) for i in range(LINES_PER_PAGE)])
+
+
+def build_page(jobs_in_page: list[Job]) -> str:
+    return build_page_front(jobs_in_page) + "\n" + build_page_back(jobs_in_page)
+
+
+def build_all_pages(jobs: list[Job]) -> str:
+    assert len(jobs) % JOBS_PER_PAGE == 0, "Every page has to be full (maybe even with empty jobs) to be valid."
+    n_pages = len(jobs) // JOBS_PER_PAGE
+    pages = [build_page(jobs[JOBS_PER_PAGE * page_index: JOBS_PER_PAGE * (page_index + 1)]) for page_index in range(n_pages)]
+    return "\n".join(pages)
+
+
+def pad_to_full_pages(jobs: list[Job]) -> list[Job]:
+    jobs_over_last_full_page = len(jobs) % JOBS_PER_PAGE
+    if jobs_over_last_full_page == 0:
+        return jobs
+    pad_size = JOBS_PER_PAGE - jobs_over_last_full_page
+    return jobs + [EMPTY_JOB] * pad_size
+
+
+def main():
+    # generate the job list content
+    jobs = extract_random_jobs(PARTICIPANTS)
+    jobs = pad_to_full_pages(jobs)
+    jobs_str = build_all_pages(jobs)
     # write the jobs
-    with open(os.path.join(PDF_DIR, JOBS_FRONT), "w") as f:
+    with open(os.path.join(PDF_DIR, SRC_JOB_LIST), "w") as f:
         f.write(jobs_str)
-    with open(os.path.join(PDF_DIR, JOBS_BACK), "w") as f:
-        f.write(cover_str)
     # generate the pdf
-    cmd = ["pdflatex", "-interaction", "nonstopmode", f"-output-directory={PDF_DIR}", os.path.join(PDF_DIR, JOBS_SRC)]
+    cmd = ["pdflatex", "-interaction", "nonstopmode", f"-output-directory={PDF_DIR}", f"-jobname={PDF_NAME}", os.path.join(PDF_DIR, SRC_MAIN)]
     proc = subprocess.Popen(cmd)
     proc.communicate()
 
