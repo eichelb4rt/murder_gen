@@ -3,6 +3,10 @@
 Generates a list of jobs for the game [murder](http://www.games-wiki.org/wiki/Assassin_game/). Uses `pdflatex` to generate a pdf for the job cutouts.
 You can find an example of generated jobs in [`example.pdf`](./example.pdf).
 
+## Requirements
+
+You need to have `pdflatex` installed and `python 3.7+`. To install all the required packages, you can execute `pip install -r requirements.txt`.
+
 ## Usage
 
 Put participants in `participants.txt` (like in [`participants-template.txt`](./participants-template.txt)), then `python src/gen_jobs.py`.
