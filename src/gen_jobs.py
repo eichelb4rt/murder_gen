@@ -1,10 +1,9 @@
-import math
 import os
 import random
 import subprocess
-from dataclasses import dataclass
+from job import Job
 
-PARTICIPANTS = "participants.txt"
+PARTICIPANTS_FILE = "participants.txt"
 PDF_DIR = "jobs_pdf"
 PDF_NAME = "jobs"
 SRC_JOB_LIST = "job_list.tex"
@@ -14,10 +13,7 @@ LINES_PER_PAGE = 4
 JOBS_PER_PAGE = JOBS_PER_LINE * LINES_PER_PAGE
 
 
-@dataclass
-class Job:
-    murderer: str
-    victim: str
+
 
 
 EMPTY_JOB = Job("\\hfill", "\\hfill")
@@ -78,8 +74,12 @@ def pad_to_full_pages(jobs: list[Job]) -> list[Job]:
 
 
 def main():
+    # check if the participants file exists
+    if not os.path.isfile(PARTICIPANTS_FILE):
+        print(f"You still need to create '{PARTICIPANTS_FILE}'!")
+        exit(1)
     # generate the job list content
-    jobs = extract_random_jobs(PARTICIPANTS)
+    jobs = extract_random_jobs(PARTICIPANTS_FILE)
     jobs = pad_to_full_pages(jobs)
     jobs_str = build_all_pages(jobs)
     # write the jobs
