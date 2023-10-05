@@ -1,4 +1,8 @@
 {
-    "sender_name": "Person Omega (Orga)",
-    "sender_mail": "person.omega@gmail.com"
+    "smtp_host": "smtp.gmail.com",
+    "smtp_version": "SSL",
+    "smtp_port": 465,
+    "sender_mail": "person.omega@gmail.com",
+    "password": "super_secret_password",
+    "language": "english"
 }
