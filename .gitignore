@@ -8,3 +8,4 @@ __pycache__
 participants.txt
 mails.csv
 mail_config.json
+botched_names.csv

@@ -41,14 +41,6 @@ def extract_missions(job_lists: list[JobList]) -> dict[str, list[tuple[str, str]
     return dict(killer_to_missions)
 
 
-def is_concurrent(mails: pd.DataFrame, missions: dict[str, list[tuple[str, str]]]) -> bool:
-    """Checks if the people mentioned in the mails csv and the people mentioned in the missions are concurrent."""
-
-    people_in_mails = set(mails['name'])
-    people_in_missions = set(missions.keys())
-    return people_in_mails == people_in_missions
-
-
 def build_mail_content(killer: str, missions: list[tuple[str, str]], language="english") -> str:
     if language == "english":
         msg_content = f"Hello {killer},\n\nhere are your jobs for the murder game:\n\n"
@@ -128,7 +120,10 @@ def main():
     # extract all the job lists from the pdfs
     job_lists = extract_job_lists()
     killer_to_missions = extract_missions(job_lists)
-    assert is_concurrent(mails, killer_to_missions), f"mails and missions are not concurrent:\nMails: {set(mails['name'])}\nMissions: {set(killer_to_missions.keys())}"
+    # check if the people mentioned in the mails csv and the people mentioned in the missions are concurrent.
+    people_in_mails = set(mails['name'])
+    people_in_missions = set(killer_to_missions.keys())
+    assert people_in_mails == people_in_missions, f"mails and missions are not concurrent:\nMails: {people_in_mails}\nMissions: {people_in_missions}\ndifference: {people_in_mails.symmetric_difference(people_in_missions)}"
     # print(build_mail_content("Person B", killer_to_missions["Person B"]))
     send_mails(mails, killer_to_missions)
 

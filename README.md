@@ -106,3 +106,8 @@ group 'Main_Group': Person D
 
 Sincerely, the organisation team of the murder game
 ```
+
+### Botched Names
+
+Because of encoding issues, the names can sometimes not properly be extracted from the pdf again. For this, there is an optional `botched_names.csv` you can create, following the template `botched_names-template.csv`.
+In this file, you can specify the output the pdf reader gives you together with the names you want them to be. If this file exists, the botched names will be transformed to the clear names before processing.
