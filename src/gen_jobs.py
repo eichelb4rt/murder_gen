@@ -1,7 +1,7 @@
 import os
 import random
 import subprocess
-from job import Job
+from jobs import Job
 
 PARTICIPANTS_FILE = "participants.txt"
 PDF_DIR = "jobs_pdf"
@@ -11,9 +11,6 @@ SRC_MAIN = "main.tex"
 JOBS_PER_LINE = 3
 LINES_PER_PAGE = 4
 JOBS_PER_PAGE = JOBS_PER_LINE * LINES_PER_PAGE
-
-
-
 
 
 EMPTY_JOB = Job("\\hfill", "\\hfill")
@@ -32,11 +29,11 @@ def extract_random_jobs(participants_file: str) -> list[Job]:
 
 
 def format_front(job: Job) -> str:
-    return f"\\job{{{job.murderer}}}{{{job.victim}}}"
+    return f"\\job{{{job.killer}}}{{{job.target}}}"
 
 
 def format_back(job: Job) -> str:
-    return f"\\jobback{{{job.murderer}}}"
+    return f"\\jobback{{{job.killer}}}"
 
 
 def build_page_front(jobs_in_page: list[Job]) -> str:

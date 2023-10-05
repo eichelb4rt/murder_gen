@@ -1,7 +1,6 @@
 import re
-import glob
 from PyPDF2 import PdfReader
-from job import Job
+from jobs import Job
 
 
 def extract_jobs_from_pdf(pdf_path: str) -> list[Job]:
@@ -15,18 +14,42 @@ def extract_jobs_from_pdf(pdf_path: str) -> list[Job]:
     killers_and_targets = re.sub(r'\nKiller\nTarget', '', killers_and_targets)
     # iterate over the lines and save them as jobs
     jobs: list[Job] = []
-    killer: str = ""
-    target: str = ""
-    for i, line in enumerate(killers_and_targets.splitlines()):
-        # if we find a new "Killer" line, we can append the current killer
+    lines = killers_and_targets.splitlines()
+    killer_lines: list[str] = []
+    target_lines: list[str] = []
+    for i, line in enumerate(lines):
+        # switch building mode depending on what we see
         if line == "Killer":
-            jobs.append(Job(killer, target))
+            # after the first line, if we encounter a new "Killer", then we have to save the last job
+            if i > 0:
+                killer = " ".join(killer_lines)
+                target = " ".join(target_lines)
+                jobs.append(Job(killer, target))
+                killer_lines = []
+                target_lines = []
+            building = "killer"
+            continue
+        # if we find a "Target" tag, we continue building the target
         if line == "Target":
-            print("end")
+            building = "target"
+            continue
+        # if we encounter a line that is not a valid tag, we just add it to whatever we're building
+        if building == "killer":
+            killer_lines.append(line)
+            continue
+        if building == "target":
+            target_lines.append(line)
+            continue
+    # append the last job
+    killer = " ".join(killer_lines)
+    target = " ".join(target_lines)
+    jobs.append(Job(killer, target))
+    return jobs
 
 
 def main():
-    extract_jobs_from_pdf("jobs_pdf/jobs.pdf")
+    jobs = extract_jobs_from_pdf("jobs_pdf/jobs.pdf")
+    print(jobs)
 
 
 if __name__ == "__main__":
